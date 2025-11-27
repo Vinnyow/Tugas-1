@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitoring Tekanan Udara</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-gauges@2.1.7/gauge.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .gauges {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    .chart-box {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- GAUGE PANELS -->
+    <h2>Monitoring Tekanan, Suhu dan Kelembapan</h2>
+
+    <div class="gauges">
+      <canvas id="gaugePressure" width="200" height="200"></canvas>
+      <canvas id="gaugeTemperature" width="200" height="200"></canvas>
+      <canvas id="gaugeHumidity" width="200" height="200"></canvas>
+    </div>
+
+    <!-- GRAPH -->
+    <div class="chart-box">
+      <h3>Grafik Perubahan Tekanan vs Waktu</h3>
+      <canvas id="lineChart"></canvas>
+    </div>
+
+  </div>
+
+  <script>
+    // ---------------- GAUGES -----------------------
+    
+    const gaugePressure = new RadialGauge({
+      renderTo: "gaugePressure",
+      width: 200,
+      height: 200,
+      units: "hPa",
+      minValue: 900,
+      maxValue: 1100,
+      majorTicks: ["900","950","1000","1050","1100"],
+      strokeTicks: true,
+      colorPlate: "#222",
+      colorNumbers: "#fff",
+      needleType: "line",
+      animationDuration: 500,
+    }).draw();
+
+    const gaugeTemperature = new RadialGauge({
+      renderTo: "gaugeTemperature",
+      width: 200,
+      height: 200,
+      units: "°C",
+      minValue: -10,
+      maxValue: 50,
+      majorTicks: ["-10","0","10","20","30","40","50"],
+      strokeTicks: true,
+      colorPlate: "#222",
+      colorNumbers: "#fff",
+      needleType: "line",
+      animationDuration: 500,
+    }).draw();
+
+    const gaugeHumidity = new RadialGauge({
+      renderTo: "gaugeHumidity",
+      width: 200,
+      height: 200,
+      units: "%",
+      minValue: 0,
+      maxValue: 100,
+      majorTicks: ["0","20","40","60","80","100"],
+      strokeTicks: true,
+      colorPlate: "#222",
+      colorNumbers: "#fff",
+      needleType: "line",
+      animationDuration: 500,
+    }).draw();
+
+
+    // ---------------- GRAPH -----------------------
+    const ctx = document.getElementById("lineChart").getContext("2d");
+    
+    const chartData = {
+      labels: [],
+      datasets: [
+        {
+          label: "Tekanan (hPa)",
+          data: [],
+          borderWidth: 2,
+          borderColor: "rgb(0,150,255)"
+        }
+      ]
+    };
+
+    const lineChart = new Chart(ctx, {
+      type: "line",
+      data: chartData,
+      options: {
+        responsive: true,
+        animation: false,
+        scales: {
+          y: { beginAtZero: false }
+        }
+      }
+    });
+
+
+    // ---------------- SIMULASI DATA SENSOR -----------------------
+    function updateData() {
+      // Simulasi pembacaan sensor tekanan, suhu dan kelembapan
+      const pressure = 1000 + Math.random() * 20; 
+      const temperature = 25 + Math.random() * 5;
+      const humidity = 50 + Math.random() * 10;
+
+      // Update gauge
+      gaugePressure.value = pressure;
+      gaugeTemperature.value = temperature;
+      gaugeHumidity.value = humidity;
+
+      // Update chart tekanan
+      const now = new Date().toLocaleTimeString();
+      chartData.labels.push(now);
+      chartData.datasets[0].data.push(pressure);
+
+      if (chartData.labels.length > 30) {
+        chartData.labels.shift();
+        chartData.datasets[0].data.shift();
+      }
+
+      lineChart.update();
+    }
+
+    // Update setiap 1 detik
+    setInterval(updateData, 1000);
+
+  </script>
+
+</body>
+</html>
